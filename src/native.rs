@@ -4,6 +4,7 @@ use std::ffi::CString;
 use std::sync::Arc;
 
 mod native_gl {
+    pub use self::Gles2 as Gl;
     include!(concat!(env!("OUT_DIR"), "/opengl_bindings.rs"));
 }
 
@@ -129,13 +130,14 @@ impl super::Context for Context {
         pixels: Option<&[u8]>,
     ) {
         let gl = &self.raw;
-        gl.GetTexImage(
-            target,
-            level,
-            format,
-            ty,
-            pixels.map(|p| p.as_ptr()).unwrap_or(std::ptr::null()) as *mut std::ffi::c_void,
-        );
+        // gl.GetTexImage(
+        //     target,
+        //     level,
+        //     format,
+        //     ty,
+        //     pixels.map(|p| p.as_ptr()).unwrap_or(std::ptr::null()) as *mut std::ffi::c_void,
+        // );
+        panic!("gles");
     }
 
     unsafe fn create_program(&self) -> Result<Self::Program, String> {
@@ -264,7 +266,8 @@ impl super::Context for Context {
 
     unsafe fn clear_depth_f64(&self, depth: f64) {
         let gl = &self.raw;
-        gl.ClearDepth(depth);
+        // gl.ClearDepth(depth);
+        panic!("gles");
     }
 
     unsafe fn clear_depth_f32(&self, depth: f32) {
@@ -304,7 +307,8 @@ impl super::Context for Context {
         name: &str,
     ) {
         let gl = &self.raw;
-        gl.BindFragDataLocation(program, color_number, name.as_ptr() as *const i8);
+        // gl.BindFragDataLocation(program, color_number, name.as_ptr() as *const i8);
+        panic!("gles");
     }
 
     unsafe fn buffer_data_size(&self, target: u32, size: i32, usage: u32) {
@@ -324,12 +328,13 @@ impl super::Context for Context {
 
     unsafe fn buffer_storage(&self, target: u32, size: i32, data: Option<&mut [u8]>, flags: u32) {
         let gl = &self.raw;
-        gl.BufferStorage(
-            target,
-            size as isize,
-            data.map(|p| p.as_ptr()).unwrap_or(std::ptr::null()) as *const std::ffi::c_void,
-            flags,
-        );
+        // gl.BufferStorage(
+        //     target,
+        //     size as isize,
+        //     data.map(|p| p.as_ptr()).unwrap_or(std::ptr::null()) as *const std::ffi::c_void,
+        //     flags,
+        // );
+        panic!("gles");
     }
 
     unsafe fn check_framebuffer_status(&self, target: u32) -> u32 {
@@ -460,18 +465,20 @@ impl super::Context for Context {
         base_instance: u32,
     ) {
         let gl = &self.raw;
-        gl.DrawArraysInstancedBaseInstance(
-            mode as u32,
-            first,
-            count,
-            instance_count,
-            base_instance,
-        );
+        // gl.DrawArraysInstancedBaseInstance(
+        //     mode as u32,
+        //     first,
+        //     count,
+        //     instance_count,
+        //     base_instance,
+        // );
+        panic!("gles");
     }
 
     unsafe fn draw_buffer(&self, draw_buffer: u32) {
         let gl = &self.raw;
-        gl.DrawBuffer(draw_buffer);
+        // gl.DrawBuffer(draw_buffer);
+        panic!("gles");
     }
 
     unsafe fn draw_buffers(&self, buffers: &[u32]) {
@@ -556,15 +563,16 @@ impl super::Context for Context {
         base_instance: u32,
     ) {
         let gl = &self.raw;
-        gl.DrawElementsInstancedBaseVertexBaseInstance(
-            mode as u32,
-            count,
-            element_type as u32,
-            offset as *const std::ffi::c_void,
-            instance_count,
-            base_vertex,
-            base_instance,
-        );
+        // gl.DrawElementsInstancedBaseVertexBaseInstance(
+        //     mode as u32,
+        //     count,
+        //     element_type as u32,
+        //     offset as *const std::ffi::c_void,
+        //     instance_count,
+        //     base_vertex,
+        //     base_instance,
+        // );
+        panic!("gles");
     }
 
     unsafe fn enable(&self, parameter: u32) {
@@ -642,14 +650,15 @@ impl super::Context for Context {
         layer: i32,
     ) {
         let gl = &self.raw;
-        gl.FramebufferTexture3D(
-            target,
-            attachment,
-            texture_target,
-            texture.unwrap_or(0),
-            level,
-            layer,
-        );
+        // gl.FramebufferTexture3D(
+        //     target,
+        //     attachment,
+        //     texture_target,
+        //     texture.unwrap_or(0),
+        //     level,
+        //     layer,
+        // );
+        panic!("gles");
     }
 
     unsafe fn framebuffer_texture_layer(
@@ -715,12 +724,8 @@ impl super::Context for Context {
         let name = CString::new(name).unwrap();
         Some(gl.GetUniformLocation(program, name.as_ptr() as *const i8) as u32)
     }
-    
-    unsafe fn get_attrib_location(
-        &self,
-        program: Self::Program,
-        name: &str
-    ) -> i32 {
+
+    unsafe fn get_attrib_location(&self, program: Self::Program, name: &str) -> i32 {
         let gl = &self.raw;
         let name = CString::new(name).unwrap();
         gl.GetAttribLocation(program, name.as_ptr() as *const i8) as i32
@@ -810,32 +815,61 @@ impl super::Context for Context {
         gl.Uniform2i(location.unwrap_or(0) as i32, x, y);
     }
 
-    unsafe fn uniform_3_i32(&self, location: Option<Self::UniformLocation>, x: i32, y: i32, z: i32) {
+    unsafe fn uniform_3_i32(
+        &self,
+        location: Option<Self::UniformLocation>,
+        x: i32,
+        y: i32,
+        z: i32,
+    ) {
         let gl = &self.raw;
         gl.Uniform3i(location.unwrap_or(0) as i32, x, y, z);
     }
 
-    unsafe fn uniform_4_i32(&self, location: Option<Self::UniformLocation>, x: i32, y: i32, z: i32, w: i32) {
+    unsafe fn uniform_4_i32(
+        &self,
+        location: Option<Self::UniformLocation>,
+        x: i32,
+        y: i32,
+        z: i32,
+        w: i32,
+    ) {
         let gl = &self.raw;
         gl.Uniform4i(location.unwrap_or(0) as i32, x, y, z, w);
     }
 
-    unsafe fn uniform_1_i32_slice(&self, location: Option<Self::UniformLocation>, v: &mut [i32; 1]) {
+    unsafe fn uniform_1_i32_slice(
+        &self,
+        location: Option<Self::UniformLocation>,
+        v: &mut [i32; 1],
+    ) {
         let gl = &self.raw;
         gl.Uniform1iv(location.unwrap_or(0) as i32, 1, v.as_ptr());
     }
 
-    unsafe fn uniform_2_i32_slice(&self, location: Option<Self::UniformLocation>, v: &mut [i32; 2]) {
+    unsafe fn uniform_2_i32_slice(
+        &self,
+        location: Option<Self::UniformLocation>,
+        v: &mut [i32; 2],
+    ) {
         let gl = &self.raw;
         gl.Uniform2iv(location.unwrap_or(0) as i32, 1, v.as_ptr());
     }
 
-    unsafe fn uniform_3_i32_slice(&self, location: Option<Self::UniformLocation>, v: &mut [i32; 3]) {
+    unsafe fn uniform_3_i32_slice(
+        &self,
+        location: Option<Self::UniformLocation>,
+        v: &mut [i32; 3],
+    ) {
         let gl = &self.raw;
         gl.Uniform3iv(location.unwrap_or(0) as i32, 1, v.as_ptr());
     }
 
-    unsafe fn uniform_4_i32_slice(&self, location: Option<Self::UniformLocation>, v: &mut [i32; 4]) {
+    unsafe fn uniform_4_i32_slice(
+        &self,
+        location: Option<Self::UniformLocation>,
+        v: &mut [i32; 4],
+    ) {
         let gl = &self.raw;
         gl.Uniform4iv(location.unwrap_or(0) as i32, 1, v.as_ptr());
     }
@@ -850,12 +884,25 @@ impl super::Context for Context {
         gl.Uniform2f(location.unwrap_or(0) as i32, x, y);
     }
 
-    unsafe fn uniform_3_f32(&self, location: Option<Self::UniformLocation>, x: f32, y: f32, z: f32) {
+    unsafe fn uniform_3_f32(
+        &self,
+        location: Option<Self::UniformLocation>,
+        x: f32,
+        y: f32,
+        z: f32,
+    ) {
         let gl = &self.raw;
         gl.Uniform3f(location.unwrap_or(0) as i32, x, y, z);
     }
 
-    unsafe fn uniform_4_f32(&self, location: Option<Self::UniformLocation>, x: f32, y: f32, z: f32, w: f32) {
+    unsafe fn uniform_4_f32(
+        &self,
+        location: Option<Self::UniformLocation>,
+        x: f32,
+        y: f32,
+        z: f32,
+        w: f32,
+    ) {
         let gl = &self.raw;
         gl.Uniform4f(location.unwrap_or(0) as i32, x, y, z, w);
     }
@@ -880,17 +927,32 @@ impl super::Context for Context {
         gl.Uniform4fv(location.unwrap_or(0) as i32, 1, v.as_ptr());
     }
 
-    unsafe fn uniform_matrix_2_f32_slice(&self, location: Option<Self::UniformLocation>, transpose: bool, v: &[f32; 4]) {
+    unsafe fn uniform_matrix_2_f32_slice(
+        &self,
+        location: Option<Self::UniformLocation>,
+        transpose: bool,
+        v: &[f32; 4],
+    ) {
         let gl = &self.raw;
         gl.UniformMatrix2fv(location.unwrap_or(0) as i32, 1, transpose as u8, v.as_ptr());
     }
 
-    unsafe fn uniform_matrix_3_f32_slice(&self, location: Option<Self::UniformLocation>, transpose: bool, v: &[f32; 9]) {
+    unsafe fn uniform_matrix_3_f32_slice(
+        &self,
+        location: Option<Self::UniformLocation>,
+        transpose: bool,
+        v: &[f32; 9],
+    ) {
         let gl = &self.raw;
         gl.UniformMatrix3fv(location.unwrap_or(0) as i32, 1, transpose as u8, v.as_ptr());
     }
 
-    unsafe fn uniform_matrix_4_f32_slice(&self, location: Option<Self::UniformLocation>, transpose: bool, v: &[f32; 16]) {
+    unsafe fn uniform_matrix_4_f32_slice(
+        &self,
+        location: Option<Self::UniformLocation>,
+        transpose: bool,
+        v: &[f32; 16],
+    ) {
         let gl = &self.raw;
         gl.UniformMatrix4fv(location.unwrap_or(0) as i32, 1, transpose as u8, v.as_ptr());
     }
@@ -955,7 +1017,8 @@ impl super::Context for Context {
 
     unsafe fn polygon_mode(&self, face: u32, mode: u32) {
         let gl = &self.raw;
-        gl.PolygonMode(face as u32, mode as u32);
+        // gl.PolygonMode(face as u32, mode as u32);
+        panic!("gles");
     }
 
     unsafe fn finish(&self) {
@@ -1067,12 +1130,14 @@ impl super::Context for Context {
 
     unsafe fn depth_range_f64(&self, near: f64, far: f64) {
         let gl = &self.raw;
-        gl.DepthRange(near, far);
+        // gl.DepthRange(near, far);
+        panic!("gles");
     }
 
     unsafe fn depth_range_f64_slice(&self, first: u32, count: i32, values: &[[f64; 2]]) {
         let gl = &self.raw;
-        gl.DepthRangeArrayv(first, count, values.as_ptr() as *const f64);
+        // gl.DepthRangeArrayv(first, count, values.as_ptr() as *const f64);
+        panic!("gles");
     }
 
     unsafe fn scissor(&self, x: i32, y: i32, width: i32, height: i32) {
@@ -1082,7 +1147,8 @@ impl super::Context for Context {
 
     unsafe fn scissor_slice(&self, first: u32, count: i32, scissors: &[[i32; 4]]) {
         let gl = &self.raw;
-        gl.ScissorArrayv(first, count, scissors.as_ptr() as *const i32);
+        // gl.ScissorArrayv(first, count, scissors.as_ptr() as *const i32);
+        panic!("gles");
     }
 
     unsafe fn vertex_attrib_divisor(&self, index: u32, divisor: u32) {
@@ -1137,13 +1203,14 @@ impl super::Context for Context {
         offset: i32,
     ) {
         let gl = &self.raw;
-        gl.VertexAttribLPointer(
-            index,
-            size,
-            data_type,
-            stride,
-            offset as *const std::ffi::c_void,
-        );
+        // gl.VertexAttribLPointer(
+        //     index,
+        //     size,
+        //     data_type,
+        //     stride,
+        //     offset as *const std::ffi::c_void,
+        // );
+        panic!("gles");
     }
 
     unsafe fn viewport(&self, x: i32, y: i32, width: i32, height: i32) {
@@ -1153,7 +1220,8 @@ impl super::Context for Context {
 
     unsafe fn viewport_f32_slice(&self, first: u32, count: i32, values: &[[f32; 4]]) {
         let gl = &self.raw;
-        gl.ViewportArrayv(first, count, values.as_ptr() as *const f32);
+        // gl.ViewportArrayv(first, count, values.as_ptr() as *const f32);
+        panic!("gles");
     }
 
     unsafe fn blend_equation(&self, mode: u32) {

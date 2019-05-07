@@ -9,14 +9,12 @@ fn main() {
         let dest = Path::new(&out_dir);
         let mut file = File::create(&dest.join("opengl_bindings.rs")).unwrap();
         Registry::new(
-            Api::Gl,
-            (4, 6),
+            Api::Gles2,
+            (3, 3),
             Profile::Core,
             Fallbacks::All,
             [
-                "GL_EXT_texture_filter_anisotropic",
-                "GL_ARB_draw_buffers_blend",
-                "GL_ARB_program_interface_query",
+
             ],
         )
         .write_bindings(gl_generator::StructGenerator, &mut file)
