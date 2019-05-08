@@ -1,7 +1,6 @@
 use super::*;
 
 use std::ffi::CString;
-use std::sync::Arc;
 
 mod native_gl {
     pub use self::Gles2 as Gl;
@@ -192,6 +191,41 @@ impl super::Context for Context {
         }
     }
 
+    unsafe fn get_active_uniforms(&self, program: Self::Program) -> u32 {
+        let gl = &self.raw;
+        let mut count = 0;
+        gl.GetProgramiv(program, ACTIVE_UNIFORMS, &mut count);
+        count as u32
+    }
+
+    unsafe fn get_active_uniform(&self, program: Self::Program, index: u32) -> Option<ActiveUniform> {
+        let gl = &self.raw;
+        let mut uniform_max_size = 0;
+        gl.GetProgramiv(program, ACTIVE_UNIFORM_MAX_LENGTH, &mut uniform_max_size);
+
+        let mut name = String::with_capacity(uniform_max_size as usize);
+        name.extend(std::iter::repeat('\0').take(uniform_max_size as usize));
+        let mut length = 0;
+        let mut size = 0;
+        let mut utype = 0;
+        gl.GetActiveUniform(
+            program,
+            index,
+            uniform_max_size,
+            &mut length,
+            &mut size,
+            &mut utype,
+            name.as_ptr() as *mut native_gl::types::GLchar,
+        );
+        name.truncate(length as usize);
+        
+        Some(ActiveUniform {
+            size,
+            utype,
+            name,
+        })
+    }
+
     unsafe fn use_program(&self, program: Option<Self::Program>) {
         let gl = &self.raw;
         gl.UseProgram(program.unwrap_or(0));
@@ -235,6 +269,23 @@ impl super::Context for Context {
     unsafe fn bind_renderbuffer(&self, target: u32, renderbuffer: Option<Self::Renderbuffer>) {
         let gl = &self.raw;
         gl.BindRenderbuffer(target, renderbuffer.unwrap_or(0));
+    }
+
+    unsafe fn blit_framebuffer(
+        &self,
+        src_x0: i32,
+        src_y0: i32,
+        src_x1: i32,
+        src_y1: i32,
+        dst_x0: i32,
+        dst_y0: i32,
+        dst_x1: i32,
+        dst_y1: i32,
+        mask: u32,
+        filter: u32,
+    ) {
+        let gl = &self.raw;
+        gl.BlitFramebuffer(src_x0, src_y0, src_x1, src_y1, dst_x0, dst_y0, dst_x1, dst_y1, mask, filter);
     }
 
     unsafe fn create_vertex_array(&self) -> Result<Self::VertexArray, String> {
@@ -1329,27 +1380,46 @@ impl super::Context for Context {
     }
 }
 
+pub struct RenderLoop<W> {
+    window: W,
+}
+
 #[cfg(feature = "glutin")]
-pub type WindowType = glutin::GlWindow;
-
-#[cfg(feature = "sdl")]
-pub type WindowType = sdl2::video::Window;
-
-pub struct RenderLoop;
-
-impl RenderLoop {
-    pub fn from_window() -> Self {
-        RenderLoop
+impl RenderLoop<glutin::GlWindow> {
+    pub fn from_glutin_window(window: glutin::GlWindow) -> Self {
+        RenderLoop { window }
     }
 }
 
-impl super::RenderLoop for RenderLoop {
-    type Window = Arc<WindowType>;
+#[cfg(feature = "glutin")]
+impl super::RenderLoop for RenderLoop<glutin::GlWindow> {
+    type Window = glutin::GlWindow;
 
     fn run<F: FnMut(&mut bool) + 'static>(&self, mut callback: F) {
         let mut running = true;
         while running {
             callback(&mut running);
+            self.window.swap_buffers().unwrap();
+        }
+    }
+}
+
+#[cfg(feature = "sdl2")]
+impl RenderLoop<sdl2::video::Window> {
+    pub fn from_sdl_window(window: sdl2::video::Window) -> Self {
+        RenderLoop { window }
+    }
+}
+
+#[cfg(feature = "sdl2")]
+impl super::RenderLoop for RenderLoop<sdl2::video::Window> {
+    type Window = sdl2::video::Window;
+
+    fn run<F: FnMut(&mut bool) + 'static>(&self, mut callback: F) {
+        let mut running = true;
+        while running {
+            callback(&mut running);
+            self.window.gl_swap_window();
         }
     }
 }
