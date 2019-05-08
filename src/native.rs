@@ -198,7 +198,11 @@ impl super::Context for Context {
         count as u32
     }
 
-    unsafe fn get_active_uniform(&self, program: Self::Program, index: u32) -> Option<ActiveUniform> {
+    unsafe fn get_active_uniform(
+        &self,
+        program: Self::Program,
+        index: u32,
+    ) -> Option<ActiveUniform> {
         let gl = &self.raw;
         let mut uniform_max_size = 0;
         gl.GetProgramiv(program, ACTIVE_UNIFORM_MAX_LENGTH, &mut uniform_max_size);
@@ -218,12 +222,8 @@ impl super::Context for Context {
             name.as_ptr() as *mut native_gl::types::GLchar,
         );
         name.truncate(length as usize);
-        
-        Some(ActiveUniform {
-            size,
-            utype,
-            name,
-        })
+
+        Some(ActiveUniform { size, utype, name })
     }
 
     unsafe fn use_program(&self, program: Option<Self::Program>) {
@@ -285,7 +285,9 @@ impl super::Context for Context {
         filter: u32,
     ) {
         let gl = &self.raw;
-        gl.BlitFramebuffer(src_x0, src_y0, src_x1, src_y1, dst_x0, dst_y0, dst_x1, dst_y1, mask, filter);
+        gl.BlitFramebuffer(
+            src_x0, src_y0, src_x1, src_y1, dst_x0, dst_y0, dst_x1, dst_y1, mask, filter,
+        );
     }
 
     unsafe fn create_vertex_array(&self) -> Result<Self::VertexArray, String> {
@@ -1380,26 +1382,24 @@ impl super::Context for Context {
     }
 }
 
-pub struct RenderLoop<W> {
-    window: W,
-}
+pub struct RenderLoop {}
 
 #[cfg(feature = "glutin")]
-impl RenderLoop<glutin::GlWindow> {
-    pub fn from_glutin_window(window: glutin::GlWindow) -> Self {
-        RenderLoop { window }
+impl RenderLoop {
+    pub fn from_window() -> Self {
+        RenderLoop {}
     }
 }
 
 #[cfg(feature = "glutin")]
-impl super::RenderLoop for RenderLoop<glutin::GlWindow> {
-    type Window = glutin::GlWindow;
+impl super::RenderLoop for RenderLoop {
+    type Window = u32;
 
     fn run<F: FnMut(&mut bool) + 'static>(&self, mut callback: F) {
         let mut running = true;
         while running {
             callback(&mut running);
-            self.window.swap_buffers().unwrap();
+            // self.window.swap_buffers().unwrap();
         }
     }
 }
