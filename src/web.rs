@@ -342,6 +342,22 @@ impl super::Context for Context {
         .unwrap_or(0)
     }
 
+    unsafe fn get_active_attribs(&self, program: Self::Program) -> u32 {
+        let programs = self.programs.borrow();
+        let raw_program = programs.1.get_unchecked(program);
+        match self.raw {
+            RawRenderingContext::WebGl1(ref gl) => {
+                gl.get_program_parameter(raw_program, WebGlRenderingContext::ACTIVE_ATTRIBUTES)
+            }
+            RawRenderingContext::WebGl2(ref gl) => {
+                gl.get_program_parameter(raw_program, WebGl2RenderingContext::ACTIVE_ATTRIBUTES)
+            }
+        }
+        .as_f64()
+        .map(|v| v as u32)
+        .unwrap_or(0)
+    }
+
     unsafe fn get_active_uniform(&self, program: Self::Program, index: u32) -> Option<ActiveUniform> {
         let programs = self.programs.borrow();
         let raw_program = programs.1.get_unchecked(program);
@@ -356,6 +372,29 @@ impl super::Context for Context {
             }
             RawRenderingContext::WebGl2(ref gl) => {
                 gl.get_active_uniform(raw_program, index)
+                    .map(|au| ActiveUniform {
+                        size: au.size(),
+                        utype: au.type_(),
+                        name: au.name(),
+                    })
+            }
+        }
+    }
+
+    unsafe fn get_active_attrib(&self, program: Self::Program, index: u32) -> Option<ActiveUniform> {
+        let programs = self.programs.borrow();
+        let raw_program = programs.1.get_unchecked(program);
+        match self.raw {
+            RawRenderingContext::WebGl1(ref gl) => {
+                gl.get_active_attrib(raw_program, index)
+                    .map(|au| ActiveUniform {
+                        size: au.size(),
+                        utype: au.type_(),
+                        name: au.name(),
+                    })
+            }
+            RawRenderingContext::WebGl2(ref gl) => {
+                gl.get_active_attrib(raw_program, index)
                     .map(|au| ActiveUniform {
                         size: au.size(),
                         utype: au.type_(),

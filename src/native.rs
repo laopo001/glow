@@ -198,6 +198,13 @@ impl super::Context for Context {
         count as u32
     }
 
+    unsafe fn get_active_attribs(&self, program: Self::Program) -> u32 {
+        let gl = &self.raw;
+        let mut count = 0;
+        gl.GetProgramiv(program, ACTIVE_ATTRIBUTES, &mut count);
+        count as u32
+    }
+
     unsafe fn get_active_uniform(
         &self,
         program: Self::Program,
@@ -213,6 +220,34 @@ impl super::Context for Context {
         let mut size = 0;
         let mut utype = 0;
         gl.GetActiveUniform(
+            program,
+            index,
+            uniform_max_size,
+            &mut length,
+            &mut size,
+            &mut utype,
+            name.as_ptr() as *mut native_gl::types::GLchar,
+        );
+        name.truncate(length as usize);
+
+        Some(ActiveUniform { size, utype, name })
+    }
+
+    unsafe fn get_active_attrib(
+        &self,
+        program: Self::Program,
+        index: u32,
+    ) -> Option<ActiveUniform> {
+        let gl = &self.raw;
+        let mut uniform_max_size = 0;
+        gl.GetProgramiv(program, ACTIVE_ATTRIBUTE_MAX_LENGTH, &mut uniform_max_size);
+
+        let mut name = String::with_capacity(uniform_max_size as usize);
+        name.extend(std::iter::repeat('\0').take(uniform_max_size as usize));
+        let mut length = 0;
+        let mut size = 0;
+        let mut utype = 0;
+        gl.GetActiveAttrib(
             program,
             index,
             uniform_max_size,

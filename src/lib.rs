@@ -130,7 +130,11 @@ pub trait Context {
 
     unsafe fn get_active_uniforms(&self, program: Self::Program) -> u32;
 
+    unsafe fn get_active_attribs(&self, program: Self::Program) -> u32;
+
     unsafe fn get_active_uniform(&self, program: Self::Program, index: u32) -> Option<ActiveUniform>;
+
+    unsafe fn get_active_attrib(&self, program: Self::Program, index: u32) -> Option<ActiveUniform>;
 
     unsafe fn use_program(&self, program: Option<Self::Program>);
 
