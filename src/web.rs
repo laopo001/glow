@@ -1,5 +1,5 @@
 use super::*;
-
+use js_sys::WebAssembly;
 use slotmap::{new_key_type, SecondaryMap, SlotMap};
 use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
@@ -9,6 +9,7 @@ use web_sys::{
     WebGlUniformLocation, WebGlVertexArrayObject,
 };
 use js_sys::Array;
+use wasm_bindgen::JsCast;
 
 #[derive(Debug)]
 enum RawRenderingContext {
@@ -627,6 +628,31 @@ impl super::Context for Context {
             }
             RawRenderingContext::WebGl2(ref gl) => {
                 gl.buffer_data_with_u8_array(target, data, usage)
+            }
+        }
+    }
+
+    unsafe fn buffer_data_f64_slice(&self, target: u32, data: &[f64], usage: u32) {
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<WebAssembly::Memory>().unwrap()
+            .buffer();
+        let vertices_location = data.as_ptr() as u32 / 4;
+        let vert_array = js_sys::Float32Array::new(&memory_buffer)
+        .   subarray(vertices_location, vertices_location + data.len() as u32);
+        match self.raw {
+            RawRenderingContext::WebGl1(ref gl) => {
+                gl.buffer_data_with_array_buffer_view(
+                    WebGlRenderingContext::ARRAY_BUFFER,
+                    &vert_array,
+                    WebGlRenderingContext::STATIC_DRAW,
+                );
+            }
+            RawRenderingContext::WebGl2(ref gl) => {
+                gl.buffer_data_with_array_buffer_view(
+                    WebGlRenderingContext::ARRAY_BUFFER,
+                    &vert_array,
+                    WebGlRenderingContext::STATIC_DRAW,
+                );
             }
         }
     }
