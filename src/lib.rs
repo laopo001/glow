@@ -201,6 +201,8 @@ pub trait Context {
     
     unsafe fn buffer_data_f64_slice(&self, target: u32, data: &[f64], usage: u32);
 
+    unsafe fn buffer_data_f32_slice(&self, target: u32, data: &[f32], usage: u32);
+
     unsafe fn buffer_storage(&self, target: u32, size: i32, data: Option<&mut [u8]>, flags: u32);
 
     unsafe fn check_framebuffer_status(&self, target: u32) -> u32;

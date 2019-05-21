@@ -418,7 +418,17 @@ impl super::Context for Context {
         let gl = &self.raw;
         gl.BufferData(
             target,
-            data.len() as isize,
+            (data.len() * std::mem::size_of::<f64>()) as isize,
+            data.as_ptr() as *const std::ffi::c_void,
+            usage,
+        );
+    }
+
+    unsafe fn buffer_data_f32_slice(&self, target: u32, data: &[f32], usage: u32) {
+        let gl = &self.raw;
+        gl.BufferData(
+            target,
+            (data.len() * std::mem::size_of::<f32>()) as isize,
             data.as_ptr() as *const std::ffi::c_void,
             usage,
         );

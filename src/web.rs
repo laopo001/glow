@@ -637,8 +637,33 @@ impl super::Context for Context {
             .dyn_into::<WebAssembly::Memory>().unwrap()
             .buffer();
         let vertices_location = data.as_ptr() as u32 / 4;
-        let vert_array = js_sys::Float32Array::new(&memory_buffer)
+        let vert_array = js_sys::Float64Array::new(&memory_buffer)
         .   subarray(vertices_location, vertices_location + data.len() as u32);
+        match self.raw {
+            RawRenderingContext::WebGl1(ref gl) => {
+                gl.buffer_data_with_array_buffer_view(
+                    WebGlRenderingContext::ARRAY_BUFFER,
+                    &vert_array,
+                    WebGlRenderingContext::STATIC_DRAW,
+                );
+            }
+            RawRenderingContext::WebGl2(ref gl) => {
+                gl.buffer_data_with_array_buffer_view(
+                    WebGlRenderingContext::ARRAY_BUFFER,
+                    &vert_array,
+                    WebGlRenderingContext::STATIC_DRAW,
+                );
+            }
+        }
+    }
+
+    unsafe fn buffer_data_f32_slice(&self, target: u32, data: &[f32], usage: u32) {
+        let memory_buffer = wasm_bindgen::memory()
+            .dyn_into::<WebAssembly::Memory>().unwrap()
+            .buffer();
+        let vertices_location = data.as_ptr() as u32 / 4;
+        let vert_array = js_sys::Float32Array::new(&memory_buffer)
+            .   subarray(vertices_location, vertices_location + data.len() as u32);
         match self.raw {
             RawRenderingContext::WebGl1(ref gl) => {
                 gl.buffer_data_with_array_buffer_view(
