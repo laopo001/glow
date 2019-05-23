@@ -434,6 +434,16 @@ impl super::Context for Context {
         );
     }
 
+    unsafe fn buffer_data_u32_slice(&self, target: u32, data: &[u32], usage: u32) {
+        let gl = &self.raw;
+        gl.BufferData(
+            target,
+            (data.len() * std::mem::size_of::<u32>()) as isize,
+            data.as_ptr() as *const std::ffi::c_void,
+            usage,
+        );
+    }
+
     unsafe fn buffer_storage(&self, target: u32, size: i32, data: Option<&mut [u8]>, flags: u32) {
         let gl = &self.raw;
         // gl.BufferStorage(
